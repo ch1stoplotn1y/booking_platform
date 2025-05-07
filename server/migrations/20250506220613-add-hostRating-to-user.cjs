@@ -1,15 +1,15 @@
-'use strict';
+"use strict";
 
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.addColumn('users', 'hostRating', {
+    await queryInterface.addColumn("users", "hostRating", {
       type: Sequelize.DECIMAL(3, 2),
       allowNull: true,
-      defaultValue: null
+      defaultValue: null,
     });
   },
 
   async down(queryInterface) {
-    await queryInterface.removeColumn('users', 'hostRating');
-  }
+    await queryInterface.removeColumn("users", "hostRating");
+  },
 };
