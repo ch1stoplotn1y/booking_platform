@@ -1,162 +1,63 @@
-import { Link, Navigate } from "react-router-dom";
-import { useParams, useNavigate } from "react-router-dom";
-import { useState } from "react";
-import { useEffect } from "react";
-import axios from "axios";
+import { Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import AccountNavigation from "./AccountNavigation";
+import { useState, useEffect } from "react";
+import axios from "axios";
 
 export default function PropertiesPage() {
-    //Параметр определяющий
-    //создание нового объекта или просмотр существующего
-    const { action } = useParams();
-    // console.log(action);
-
-    //Состояния для формы
-    const [title, setTitle] = useState("");
-    const [description, setDescription] = useState("");
-    const [type, setType] = useState("");
-    const [pricePerNight, setPricePerNight] = useState(0);
-    const [bedrooms, setBedrooms] = useState(1);
-    const [bathrooms, setBathrooms] = useState(1);
-    const [MaxGuests, setMaxGuests] = useState(1);
-    const [address, setAddress] = useState("");
-    const [city, setCity] = useState("");
-    const [country, setCountry] = useState("");
-    const [photoLink, setPhotoLink] = useState("");
-    const [addedPhotos, setAddedPhotos] = useState([]);
-    //Отработка добавления удобств, т.к. находятся в другой таблице
-    const [amenities, setAmenities] = useState([]);
-    const [selectedAmenities, setSelectedAmenities] = useState([]);
-    const navigate = useNavigate();
-    const [redirect, setRedirect] = useState("");
-    useEffect(() => {
-        axios
-            .get("/amenities")
-            .then((response) => setAmenities(response.data))
-            .catch((error) => console.error("error fetching amenities", error));
-    }, []);
-
-    //Обработка изменения чекбоксов
-    const handleAmenityChange = (amenityId) => {
-        setSelectedAmenities((prev) =>
-            prev.includes(amenityId)
-                ? prev.filter((id) => id != amenityId)
-                : [...prev, amenityId]
-        );
-    };
-
-    //Запрос на отображение всех объявлений пользователя
     const [properties, setProperties] = useState([]);
+    const [bookings, setBookings] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [activeFilter, setActiveFilter] = useState("all");
+
     useEffect(() => {
-        axios.get("/properties").then(({ data }) => {
-            setProperties(data);
-        });
+        setIsLoading(true);
+        Promise.all([
+            axios.get("/users/me/properties"),
+            axios.get("/users/me/bookings"),
+        ])
+            .then(([propertiesRes, bookingsRes]) => {
+                setProperties(propertiesRes.data);
+                setBookings(bookingsRes.data);
+            })
+            .finally(() => {
+                setIsLoading(false);
+            });
     }, []);
 
-    //Слабая но рабочая обработка отображения названий на русском
-    const amenityTranslations = {
-        Kitchen: "Кухня",
-        Parking: "Парковка",
-        Pool: "Бассейн",
-        Gym: "Спортзал",
-        "Work zone": "Рабочее место",
-        TV: "Телевизор",
-    };
+    // Получаем ID всех забронированных properties
+    const bookedPropertyIds = bookings
+        .filter((booking) => booking.status === "confirmed")
+        .map((booking) => booking.property.id);
 
-    async function addPhotoWithLink(ev) {
-        ev.preventDefault();
-        const { data: filename } = await axios.post("/uploads/link", {
-            link: photoLink,
-        });
-        setAddedPhotos((prev) => {
-            return [
-                ...prev,
-                {
-                    id: Date.now(),
-                    link: filename,
-                    source: "link",
-                },
-            ];
-        });
-        setPhotoLink("");
-    }
-
-    async function addPhotoFromDevice(ev) {
-        try {
-            const files = ev.target.files;
-            if (!files || files.length === 0) {
-                throw new Error("Не выбраны файлы");
-            }
-            const data = new FormData();
-            for (let file of files) {
-                data.append("photos", file);
-            }
-            const response = await axios.post("/uploads/device", data, {
-                headers: { "Content-Type": "multipart/form-data" },
-            });
-            const newPhotos = response.data.map((filename) => ({
-                id: Date.now() + Math.random(),
-                link: filename,
-                source: "device",
-            }));
-            setAddedPhotos((prev) => {
-                return [...prev, ...newPhotos];
-            });
-        } catch (error) {
-            "Ошибка загрузки:", error.response?.data?.message || error.message;
-        }
-    }
-
-    async function createProperty(ev) {
-        ev.preventDefault();
-        try {
-            await axios.post("/properties", {
-                amenities: selectedAmenities,
-                title,
-                description,
-                type,
-                pricePerNight,
-                bedrooms,
-                bathrooms,
-                MaxGuests,
-                address,
-                city,
-                country,
-                photoLinks: addedPhotos.map((p) => p.link),
-                longitude: 1,
-                latitude: 1,
-            });
-            setRedirect(true);
-        } catch (error) {
-            console.error(
-                "Ошибка:",
-                error.response?.data?.message || error.message
-            );
-        }
-    }
-
-    if (redirect) {
-        return <Navigate to={"/profile/properties"} />;
-    }
+    // Фильтр объектов в зависимости от активного фильтра
+    const filteredProperties = properties.filter((property) => {
+        if (activeFilter === "all") return true;
+        if (activeFilter === "booked")
+            return bookedPropertyIds.includes(property.id);
+        return !bookedPropertyIds.includes(property.id);
+    });
 
     return (
-        <div>
+        <div className="min-h-screen">
             <AccountNavigation />
-            {action !== "new" && (
-                <div className="text-center">
-                    list of all places
-                    <br />
+
+            <div className="max-w-6xl mx-auto p-8">
+                <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
+                    <h1 className="text-3xl font-bold text-gray-800">
+                        Ваши объявления
+                    </h1>
                     <Link
-                        className="inline-flex gap-2 bg-gray-300 py-2 px-6 rounded-full"
-                        to={"/profile/properties/new"}
+                        to="/profile/properties/new"
+                        className="inline-flex items-center p-6 gap-2 bg-gradient-to-r from-red-400 to-pink-500 text-white font-medium rounded-full shadow-md hover:shadow-lg transition-all duration-300"
                     >
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             fill="none"
                             viewBox="0 0 24 24"
-                            strokeWidth={1.5}
+                            strokeWidth={2}
                             stroke="currentColor"
-                            className="size-6"
+                            className="w-5 h-5"
                         >
                             <path
                                 strokeLinecap="round"
@@ -166,229 +67,161 @@ export default function PropertiesPage() {
                         </svg>
                         Создать объявление
                     </Link>
-                    <div className="mt-4">
-                        {properties.length > 0 &&
-                            properties.map((property) => (
-                                <div
-                                    key={property.id}
-                                    className="bg-gray-200 p-2 rounder-2xl"
-                                >
-                                    <div className="">
-                                        {property.PropertyImages.map(
-                                            (image) => (
-                                                <img
-                                                    key={image.id}
-                                                    src={image.path}
-                                                    alt=""
-                                                    className="w-32 h-32"
-                                                />
-                                            )
-                                        )}
-                                    </div>
-                                    {property.title}
-                                </div>
-                            ))}
+                </div>
+
+                {/* Фильтры */}
+                <div className="flex flex-wrap gap-3 mb-8">
+                    <button
+                        onClick={() => setActiveFilter("all")}
+                        className={`px-4 py-2 rounded-full ${
+                            activeFilter === "all"
+                                ? "bg-indigo-600 text-white"
+                                : "bg-gray-100 hover:bg-gray-200"
+                        }`}
+                    >
+                        Все объявления
+                    </button>
+                    <button
+                        onClick={() => setActiveFilter("booked")}
+                        className={`px-4 py-2 rounded-full ${
+                            activeFilter === "booked"
+                                ? "bg-indigo-600 text-white"
+                                : "bg-gray-100 hover:bg-gray-200"
+                        }`}
+                    >
+                        Забронированные
+                    </button>
+                    <button
+                        onClick={() => setActiveFilter("available")}
+                        className={`px-4 py-2 rounded-full ${
+                            activeFilter === "available"
+                                ? "bg-indigo-600 text-white"
+                                : "bg-gray-100 hover:bg-gray-200"
+                        }`}
+                    >
+                        Свободные
+                    </button>
+                </div>
+
+                {/* Список объявлений */}
+                {isLoading ? (
+                    <div className="flex justify-center py-12">
+                        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
                     </div>
-                </div>
-            )}
-            {action === "new" && (
-                <div className="">
-                    <form onSubmit={createProperty}>
-                        <h2 className="text-xl mt-4">Название</h2>
-                        <input
-                            type="text"
-                            value={title}
-                            onChange={(ev) => setTitle(ev.target.value)}
-                            className=""
-                            placeholder="Название, например : Уютная квартира в центре"
-                        />
-                        <h2 className="text-xl mt-4">Описание</h2>
-                        {/* <input
-                            type="text"
-                            className=""
-                            placeholder="Описание"
-                        /> */}
-                        <textarea
-                            value={description}
-                            onChange={(ev) => setDescription(ev.target.value)}
-                        />
-                        <h2 className="text-xl mt-4">Выберите тип объекта</h2>
-                        <select
-                            className=""
-                            value={type}
-                            onChange={(ev) => setType(ev.target.value)}
-                        >
-                            <option value=""></option>
-                            <option value="apartment">Квартира</option>
-                            <option value="house">Дом</option>
-                            <option value="villa">Вилла</option>
-                            <option value="cottage">Коттедж</option>
-                            <option value="room">Комната</option>
-                            <option value="studio">Студия</option>
-                        </select>
-                        <h2 className="text-xl mt-4">Цена</h2>
-                        <input
-                            value={pricePerNight}
-                            onChange={(ev) => setPricePerNight(ev.target.value)}
-                            type="number"
-                            className=""
-                            placeholder="Цена за сутки проживания, руб"
-                        />
-                        <h2 className="text-xl mt-4">
-                            Количество спальных мест
-                        </h2>
-                        <input
-                            value={bedrooms}
-                            onChange={(ev) =>
-                                setBedrooms(Number(ev.target.value))
-                            }
-                            type="number"
-                            className=""
-                            placeholder="Кол-во спальных мест"
-                        />
-                        <h2 className="text-xl mt-4">
-                            Количество душевых комнат
-                        </h2>
-                        <input
-                            value={bathrooms}
-                            onChange={(ev) => setBathrooms(ev.target.value)}
-                            type="number"
-                            className=""
-                            placeholder="Кол-во душевых комнат"
-                        />
-                        <h2 className="text-xl mt-4">
-                            Макс. количество гостей
-                        </h2>
-                        <input
-                            value={MaxGuests}
-                            onChange={(ev) => setMaxGuests(ev.target.value)}
-                            type="number"
-                            className=""
-                            placeholder="Макс. количество гостей"
-                        />
-                        <h2 className="text-xl mt-4">Адрес</h2>
-                        <input
-                            type="text"
-                            value={address}
-                            onChange={(ev) => setAddress(ev.target.value)}
-                            className=""
-                            placeholder="Адрес"
-                        />
-                        <h2 className="text-xl mt-4">Город</h2>
-                        <input
-                            type="text"
-                            value={city}
-                            onChange={(ev) => setCity(ev.target.value)}
-                            className=""
-                            placeholder="Город"
-                        />
-                        <h2 className="text-xl mt-4">Страна</h2>
-                        <input
-                            type="text"
-                            className=""
-                            value={country}
-                            onChange={(ev) => setCountry(ev.target.value)}
-                            placeholder="Страна"
-                        />
-                        <h2 className="text-xl mt-4">Удобства</h2>
-                        <div className="flex flex-wrap gap-2">
-                            {amenities.map((amenity) => (
-                                <label
-                                    key={amenity.id}
-                                    className="flex items-center space-x-2"
+                ) : filteredProperties.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {filteredProperties.map((property) => {
+                            const isBooked = bookedPropertyIds.includes(
+                                property.id
+                            );
+                            return (
+                                <Link
+                                    to={`/profile/properties/${property.id}`}
+                                    key={property.id}
+                                    className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 relative"
                                 >
-                                    <input
-                                        type="checkbox"
-                                        checked={selectedAmenities.includes(
-                                            amenity.id
+                                    {/* Бейдж статуса бронирования */}
+                                    {isBooked && (
+                                        <div className="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                                            Забронировано
+                                        </div>
+                                    )}
+
+                                    {/* Изображения */}
+                                    <div className="h-48 overflow-hidden">
+                                        {property.property_images.length > 0 ? (
+                                            <img
+                                                src={`http://localhost:5000${property.property_images[0].path}`}
+                                                alt={property.title}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                                                <span className="text-gray-500">
+                                                    Нет изображений
+                                                </span>
+                                            </div>
                                         )}
-                                        onChange={() =>
-                                            handleAmenityChange(amenity.id)
-                                        }
-                                        className=""
-                                    />
-                                    <span>
-                                        {amenityTranslations[amenity.name] ||
-                                            amenity.name}
-                                    </span>
-                                </label>
-                            ))}
-                        </div>
-                        <h2 className="text-xl mt-4">Фотографии</h2>
-                        <div className="flex gap-2">
-                            <input
-                                type="text"
-                                value={photoLink}
-                                onChange={(ev) => setPhotoLink(ev.target.value)}
-                                placeholder="Добавить фото по ссылке (.jpg,jpeg,png)"
-                            />
-                            <button
-                                onClick={addPhotoWithLink}
-                                className="photos  border rounded-full px-4"
-                            >
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    strokeWidth={1.5}
-                                    stroke="currentColor"
-                                    className="size-6"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        d="M12 4.5v15m7.5-7.5h-15"
-                                    />
-                                </svg>
-                            </button>
-                        </div>
-                        <div className="grid grid-cols-3 mt-3 md:grid-cols-4 lg:grid-cols-6">
-                            {addedPhotos.length > 0 &&
-                                addedPhotos.map((photo) => (
-                                    <div key={photo.id} className="w-20 h-20">
-                                        <img
-                                            src={
-                                                "http://localhost:5000/static/" +
-                                                photo.link
-                                            }
-                                            alt=""
-                                            className="rounded-2xl w-20 h-20"
-                                        />
                                     </div>
-                                ))}
-                            <label className="cursor-pointer w-20 h-20 photos border bg-transparent flex flex-col justify-center items-center gap-1  rounded-full text-sm">
-                                <input
-                                    multiple
-                                    type="file"
-                                    className="hidden"
-                                    onChange={addPhotoFromDevice}
-                                />
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    strokeWidth={1.5}
-                                    stroke="currentColor"
-                                    className="size-5"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m3.75 9v6m3-3H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"
-                                    />
-                                </svg>
-                                Загрузить
-                            </label>
-                        </div>
-                        <button
-                            type="submit"
-                            className="cursor-pointer login m-5"
+
+                                    {/* Детали объявления */}
+                                    <div className="p-4">
+                                        <h3 className="text-xl font-semibold text-gray-800 mb-1">
+                                            {property.title}
+                                        </h3>
+                                        <p className="text-gray-600 mb-2">
+                                            {property.city}, {property.country}
+                                        </p>
+                                        <div className="flex justify-between items-center">
+                                            <div className="flex items-center text-indigo-600">
+                                                <span>Изменить</span>
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    fill="none"
+                                                    viewBox="0 0 24 24"
+                                                    strokeWidth={2}
+                                                    stroke="currentColor"
+                                                    className="w-4 h-4 ml-1"
+                                                >
+                                                    <path
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                        d="M8.25 4.5l7.5 7.5-7.5 7.5"
+                                                    />
+                                                </svg>
+                                            </div>
+                                            {isBooked && (
+                                                <span className="text-sm text-green-600">
+                                                    Активная бронь
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                </Link>
+                            );
+                        })}
+                    </div>
+                ) : (
+                    <div className="text-center py-12 bg-white rounded-xl shadow-sm">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={1.5}
+                            stroke="currentColor"
+                            className="w-12 h-12 mx-auto text-gray-400 mb-4"
                         >
-                            Добавить объявление
-                        </button>
-                    </form>
-                </div>
-            )}
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21m0 0h4.5V3.545M12.75 21h7.5V10.75M2.25 21h1.5m18 0h-18M2.25 9l4.5-1.636M18.75 3l-1.5.545m0 6.205l3 1m1.5.5l-1.5-.5"
+                            />
+                        </svg>
+                        <h3 className="text-xl font-medium text-gray-700 mb-2">
+                            {activeFilter === "booked"
+                                ? "Нет забронированных объявлений"
+                                : activeFilter === "available"
+                                ? "Нет свободных объявлений"
+                                : "У вас пока нет объявлений"}
+                        </h3>
+                        <p className="text-gray-500 mb-4">
+                            {activeFilter === "booked"
+                                ? "Когда ваши объявления будут забронированы, они появятся здесь"
+                                : activeFilter === "available"
+                                ? "Все ваши объявления в настоящее время забронированы"
+                                : "Создайте первое объявление, чтобы начать принимать гостей"}
+                        </p>
+                        {activeFilter !== "all" && (
+                            <button
+                                onClick={() => setActiveFilter("all")}
+                                className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+                            >
+                                Показать все объявления
+                            </button>
+                        )}
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

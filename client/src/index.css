@@ -14,8 +14,12 @@ textarea {
     @apply w-full border my-2 py-2 px-3 rounded-2xl;
 }
 
+.indent-first-line::first-line {
+    text-indent: 1em;
+}
+
 button {
-    @apply bg-gray-300;
+    @apply bg-gradient-to-r from-red-400 to-pink-500 text-white font-medium rounded-full shadow-md hover:shadow-lg transition-all duration-300;
 }
 
 button.login {

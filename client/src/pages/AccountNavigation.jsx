@@ -1,13 +1,14 @@
 import { Link, useLocation } from "react-router-dom";
 export default function AccountNavigation() {
+    //Компонент для навигации по профилю/бронированиям/объявлениям
     const { pathname } = useLocation();
-
     let subpage = pathname.split("/")[2];
 
     function linksClasses(type = null) {
         let classes = "inline-flex gap-1 py-2 px-6 rounded-full";
         if (type === subpage) {
-            classes += " bg-gray-300 rounded-full";
+            classes +=
+                " bg-gradient-to-r from-red-400 to-pink-500 text-white font-medium rounded-full shadow-md hover:shadow-lg transition-all duration-300";
         }
         return classes;
     }
