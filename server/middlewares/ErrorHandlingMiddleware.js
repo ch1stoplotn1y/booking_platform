@@ -1,5 +1,5 @@
 import ApiError from "../error/ApiError.js";
-//Проверка ошибки на обработанные в апиеррор
+//Мидлвейр для обработки всех ошибок, не попавших в ApiError
 function checkError(err, req, res, next) {
   if (err instanceof ApiError) {
     return res.status(err.status).json({ message: err.message });

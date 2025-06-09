@@ -1,6 +1,7 @@
 import { Amenity } from "../models/models.js";
 import ApiError from "../error/ApiError.js";
 
+//Админский CRUD для атрибута amenities (удобства) в таблице Property
 class AmenityController {
   async getAllAmenities(req, res, next) {
     try {

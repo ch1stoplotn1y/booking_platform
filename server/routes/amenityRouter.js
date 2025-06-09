@@ -4,15 +4,13 @@ import checkRoleFunction from "../middlewares/checkRoleMiddleware.js";
 
 const amenityRouter = new Router();
 
-amenityRouter.get(
-  "/",
-  checkRoleFunction("admin"),
-  amenityController.getAllAmenities
-);
+//Роуты для создания и получения amenities (удобства (wi-fi, kitchen))
+
+amenityRouter.get("/", amenityController.getAllAmenities);
 amenityRouter.post(
-  "/",
-  checkRoleFunction("admin"),
-  amenityController.createAmenity
+    "/",
+    checkRoleFunction("admin"),
+    amenityController.createAmenity
 );
 
 export default amenityRouter;

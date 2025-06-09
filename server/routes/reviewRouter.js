@@ -5,6 +5,8 @@ import checkRoleFunction from "../middlewares/checkRoleMiddleware.js";
 
 const reviewRouter = new Router();
 
+//Руоты для CRUD по отзывам
+
 //Для отзывов о жилье (PropertyReview)
 reviewRouter.post(
   "/property-reviews",

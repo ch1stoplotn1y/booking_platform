@@ -1,0 +1,30 @@
+@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="firstName"],
+input[type="lastName"],
+input[type="phone"],
+input[type="number"],
+textarea {
+    @apply w-full border my-2 py-2 px-3 rounded-2xl;
+}
+
+button {
+    @apply bg-gray-300;
+}
+
+button.login {
+    @apply text-black rounded-2xl p-2 w-full;
+}
+button.register {
+    @apply text-black rounded-2xl p-2 w-full;
+}
+
+button.photos {
+    @apply bg-white;
+}

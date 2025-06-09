@@ -1,6 +1,7 @@
 import { Wish, Property, User, PropertyImage } from "../models/models.js";
 import ApiError from "../error/ApiError.js";
 
+//CRUD для избранного
 class WishController {
   //Добавление в избранное
 

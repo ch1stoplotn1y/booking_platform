@@ -4,22 +4,22 @@ import checkRoleFunction from "../middlewares/checkRoleMiddleware.js";
 import authFunction from "../middlewares/authMiddleware.js";
 
 const userRouter = new Router();
-
+//Ендпоинты для профиля пользователя
 userRouter.get(
-  "/users",
-  checkRoleFunction("admin"),
-  userController.getAllUsers
+    "/users",
+    checkRoleFunction("admin"),
+    userController.getAllUsers
 );
 
-userRouter.get("/:id", authFunction, userController.getUserById);
 userRouter.get("/me", authFunction, userController.getUserProfile);
-userRouter.patch("/me", authFunction, userController.updateUserProfile);
+userRouter.patch("/me/avatar", authFunction, userController.updateAvatar);
+userRouter.patch("me/avatar/delete", userController.deleteAvatar);
 userRouter.delete("/me", authFunction, userController.deleteUser);
 userRouter.get(
-  "/me/properties",
-  authFunction,
-  userController.getUserProperties
+    "/me/properties",
+    authFunction,
+    userController.getUserProperties
 );
 userRouter.get("/me/bookings", authFunction, userController.getUserBookings);
-
+userRouter.get("/:id", userController.getUserById);
 export default userRouter;
