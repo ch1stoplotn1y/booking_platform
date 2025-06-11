@@ -32,44 +32,42 @@ export default function BookingsPage() {
 
     return (
         <div className="flex">
-            {/* Боковая панель с фильтрами */}
-            <div className="w-64 p-4 border-r border-gray-200">
+            <div className="w-48 p-4 border-r border-gray-200">
                 <h2 className="text-lg font-semibold mb-4">Фильтровать по:</h2>
                 <div className="space-y-2">
                     <button
                         onClick={() => setActiveFilter("confirmed")}
-                        className={`cursor-pointer w-full text-left px-4 py-2 rounded-lg transition-colors ${
+                        className={`cursor-pointer w-full text-center text-sm px-2 py-2 rounded-lg transition-colors ${
                             activeFilter === "confirmed"
                                 ? "bg-indigo-100 text-indigo-700 font-medium"
                                 : "hover:bg-gray-100"
                         }`}
                     >
-                        Активные бронирования
+                        Активные
                     </button>
                     <button
                         onClick={() => setActiveFilter("cancelled")}
-                        className={`cursor-pointer w-full text-left px-4 py-2 rounded-lg transition-colors ${
+                        className={`cursor-pointer w-full text-center text-sm px-4 py-2 rounded-lg transition-colors ${
                             activeFilter === "cancelled"
                                 ? "bg-indigo-100 text-indigo-700 font-medium"
                                 : "hover:bg-gray-100"
                         }`}
                     >
-                        Отмененные бронирования
+                        Отмененные
                     </button>
                     <button
                         onClick={() => setActiveFilter("archived")}
-                        className={`cursor-pointer w-full text-left px-4 py-2 rounded-lg transition-colors ${
+                        className={`cursor-pointer w-full text-center text-sm px-4 py-2 rounded-lg transition-colors ${
                             activeFilter === "archived"
                                 ? "bg-indigo-100 text-indigo-700 font-medium"
                                 : "hover:bg-gray-100"
                         }`}
                     >
-                        Завершенные бронирования
+                        Завершенные
                     </button>
                 </div>
             </div>
 
-            {/* Основное содержимое */}
             <div className="flex-1">
                 <AccountNavigation />
 
@@ -83,7 +81,6 @@ export default function BookingsPage() {
                             "Завершенные бронирования"}
                     </h1>
 
-                    {/* Список объявлений */}
                     {isLoading ? (
                         <div className="flex justify-center py-12">
                             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
@@ -96,7 +93,6 @@ export default function BookingsPage() {
                                     key={booking.property.id}
                                     className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 w-80"
                                 >
-                                    {/* Изображения */}
                                     <div className="h-48 overflow-hidden">
                                         {booking.property.property_images
                                             .length > 0 ? (
@@ -114,7 +110,6 @@ export default function BookingsPage() {
                                         )}
                                     </div>
 
-                                    {/* Детали объявления */}
                                     <div className="p-4 flex flex-col gap-2">
                                         <h3 className="text-xl font-semibold text-gray-800 mb-1">
                                             {booking.property.title}

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import propertyController from "../controllers/propertyController.js";
 import authFunction from "../middlewares/authMiddleware.js";
+import checkRoleFunction from "../middlewares/checkRoleMiddleware.js";
 
 const propertyRouter = new Router();
 

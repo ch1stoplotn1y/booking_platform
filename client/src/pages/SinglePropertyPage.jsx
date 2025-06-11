@@ -14,7 +14,7 @@ import {
     getReviewWord,
     getDayWord,
 } from "../utils/utils.jsx";
-import * as Icon from "../icons/Icons";
+import * as Icon from "../icons/iconsStorage.jsx";
 import { UserContext } from "../contexts/UserContext.jsx";
 
 export default function SinglePlacePage() {

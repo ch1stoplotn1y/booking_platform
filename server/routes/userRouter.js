@@ -4,12 +4,9 @@ import checkRoleFunction from "../middlewares/checkRoleMiddleware.js";
 import authFunction from "../middlewares/authMiddleware.js";
 
 const userRouter = new Router();
-//Ендпоинты для профиля пользователя
-userRouter.get(
-    "/users",
-    checkRoleFunction("admin"),
-    userController.getAllUsers
-);
+//Ендпоинты для админ панели
+userRouter.get("/all", checkRoleFunction("admin"), userController.getAllUsers);
+userRouter.put("/:id", checkRoleFunction("admin"), userController.updateUser);
 
 userRouter.get("/me", authFunction, userController.getUserProfile);
 userRouter.patch("/me/avatar", authFunction, userController.updateAvatar);

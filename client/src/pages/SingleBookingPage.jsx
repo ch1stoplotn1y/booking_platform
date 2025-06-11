@@ -2,7 +2,7 @@ import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
-import * as Icon from "../icons/Icons";
+import * as Icon from "../icons/iconsStorage";
 import AccountNavigation from "./AccountNavigation";
 import ReviewPopup from "../components/ReviewPopup";
 import {

@@ -1,7 +1,10 @@
 import { Link, useLocation } from "react-router-dom";
+import { useContext } from "react";
+import { UserContext } from "../contexts/UserContext.jsx";
+
 export default function AccountNavigation() {
-    //Компонент для навигации по профилю/бронированиям/объявлениям
     const { pathname } = useLocation();
+    const { user } = useContext(UserContext);
     let subpage = pathname.split("/")[2];
 
     function linksClasses(type = null) {
@@ -12,8 +15,9 @@ export default function AccountNavigation() {
         }
         return classes;
     }
+
     return (
-        <nav className="w-full flex justify-center mt-8 gap-2 mb-8">
+        <nav className="w-full flex justify-center mt-8 gap-2 mb-8 flex-wrap">
             <Link className={linksClasses("account")} to={"/profile/account"}>
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -68,6 +72,26 @@ export default function AccountNavigation() {
                 </svg>
                 Объявления
             </Link>
+
+            {user?.role === "admin" && (
+                <Link className={linksClasses("admin")} to={"/profile/admin"}>
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={1.5}
+                        stroke="currentColor"
+                        className="size-6"
+                    >
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z"
+                        />
+                    </svg>
+                    Админ-панель
+                </Link>
+            )}
         </nav>
     );
 }

@@ -4,7 +4,7 @@ import { Navigate, useParams, useNavigate } from "react-router-dom";
 import PropertiesPage from "./PropertiesPage.jsx";
 import AccountNavigation from "./AccountNavigation.jsx";
 import axios from "axios";
-import * as Icon from "../icons/Icons";
+import * as Icon from "../icons/iconsStorage.jsx";
 
 export default function ProfilePage() {
     const navigate = useNavigate();

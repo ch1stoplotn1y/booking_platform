@@ -184,8 +184,15 @@ class PropertyController {
             console.log(photoLinks);
 
             // 2. Получение текущего объекта с фото
+            const whereCondition = { id };
+
+            // Если пользователь не админ, добавляем проверку на владельца
+            if (req.user.role !== "admin") {
+                whereCondition.userId = req.user.id;
+            }
+
             const property = await Property.findOne({
-                where: { id, userId: req.user.id },
+                where: whereCondition,
                 include: [PropertyImage],
             });
 
@@ -380,6 +387,8 @@ class PropertyController {
             return next(ApiError.internal(error.message));
         }
     }
+
+    //Админский метод обновления объявления для админ панели
 }
 
 const propertyController = new PropertyController();

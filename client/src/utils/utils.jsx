@@ -1,4 +1,4 @@
-import * as Icon from "../icons/Icons";
+import * as Icon from "../icons/iconsStorage";
 //FIXME обработка перевода типов жилья на русский
 export const typeTranslations = {
     apartment: "Квартира",

@@ -14,7 +14,7 @@ import {
 
 class UserController {
     async getAllUsers(req, res) {
-        const users = await User.findAll();
+        const users = await User.findAndCountAll();
         return res.json(users);
     }
 
@@ -201,6 +201,35 @@ class UserController {
             return res.json(bookings);
         } catch (error) {
             return next(ApiError.internal(error.message));
+        }
+    }
+
+    //Метод обновления пользователя для админ панели
+    async updateUser(req, res, next) {
+        try {
+            const user = await User.findByPk(req.params.id);
+            if (!user) {
+                return res
+                    .status(404)
+                    .json({ message: "Пользователь не найден" });
+            }
+
+            const { firstName, lastName, email, phone, role } = req.body;
+
+            // Проверка, что email не занят другим пользователем
+            if (email && email !== user.email) {
+                const existingUser = await User.findOne({ where: { email } });
+                if (existingUser) {
+                    return res
+                        .status(400)
+                        .json({ message: "Email уже используется" });
+                }
+            }
+
+            await user.update({ firstName, lastName, email, phone, role });
+            res.json(user);
+        } catch (error) {
+            res.status(500).json({ message: error.message });
         }
     }
 }

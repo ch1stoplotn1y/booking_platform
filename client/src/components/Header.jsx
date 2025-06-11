@@ -1,7 +1,7 @@
 import { useContext } from "react";
 import { Link } from "react-router-dom";
 import { UserContext } from "../contexts/UserContext.jsx";
-import * as Icon from "../icons/Icons";
+import * as Icon from "../icons/iconsStorage.jsx";
 export default function Header() {
     const { user } = useContext(UserContext);
 

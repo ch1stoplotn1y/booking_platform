@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import * as Icon from "../icons/Icons";
+import * as Icon from "../icons/iconsStorage";
 import {
     FaAirbnb,
     FaInstagram,
